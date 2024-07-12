@@ -2,28 +2,28 @@
 
 
 ## Functions
-TODO
 
 | Function | Parameters | Description |
 | --- | --- | --- |
 | init() | TODO | TODO |
-| clear(address) | TODO | TODO |
+| clear() | TODO | TODO |
+| clear(address: int) | TODO | TODO |
 | disable() | TODO | TODO |
 | enable() | TODO | TODO |
-| fadein(delay, dimming) | TODO | TODO |
-| fadeout(delay, dimming) | TODO | TODO |
+| fadein(delay_ms: int, dimming: int) | TODO | TODO |
+| fadeout(delay_ms: int, dimming: int) | TODO | TODO |
 | off() | TODO | TODO |
 | on() | TODO | TODO |
 | reset() | TODO | TODO |
-| scramble(address, n_times) | TODO | TODO |
-| set_dimming(dimming) | TODO | TODO |
-| show_fb | TODO | TODO |
-| standby(bool) | TODO | TODO |
-| write_bits(address, bits) | TODO | TODO |
-| write_char(address, char) | TODO | TODO |
-| write_fb(address, fbuf) | TODO | TODO |
-| write_str(address, msg) | TODO | TODO |
-| TODO | TODO | TODO |
+| scramble(address: int, n_times: int) | TODO | TODO |
+| set_dimming(dimming: int) | TODO | TODO |
+| show_fb() | TODO | TODO |
+| standby(is_standby: bool) | TODO | TODO |
+| store_custom_symbol(address: int, data: list) | TODO | TODO |
+| write_bits(address: int, bits: list) | TODO | TODO |
+| write_char(address: int, char: int) | TODO | TODO |
+| write_fb(address: int, buf: bytearray) | TODO | TODO |
+| write_str(address: int, msg: str, scroll: bool, delay_ms: int) | TODO | TODO |
 
 
 ## References

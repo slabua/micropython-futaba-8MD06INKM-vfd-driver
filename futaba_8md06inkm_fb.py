@@ -64,7 +64,7 @@ class futaba_8md06inkm_fb(framebuf.FrameBuffer):
 
         for i in range(10, 0, -1):
             for j in range(self.digits):
-                self.write_str(j, chr(i + 0x30))
+                self.__write_str(j, chr(i + 0x30))
                 sleep(0.008)
         self.clear()
 
@@ -81,17 +81,17 @@ class futaba_8md06inkm_fb(framebuf.FrameBuffer):
     def enable(self):
         self.en.value(1)
 
-    def fadein(self, delay_ms, dimm=None):
-        if dimm is None:
-            dimm = self.dimming
-        for dim in range(dimm):
+    def fadein(self, delay_ms: int, dimming: int = None):
+        if dimming is None:
+            dimming = self.dimming
+        for dim in range(dimming):
             self.set_dimming(dim)
             sleep_ms(delay_ms)
 
-    def fadeout(self, delay_ms, dimm=None):
-        if dimm is None:
-            dimm = self.dimming
-        for dim in range(dimm, -1, -1):
+    def fadeout(self, delay_ms: int, dimming: int = None):
+        if dimming is None:
+            dimming = self.dimming
+        for dim in range(dimming, -1, -1):
             self.set_dimming(dim)
             sleep_ms(delay_ms)
 
@@ -106,7 +106,7 @@ class futaba_8md06inkm_fb(framebuf.FrameBuffer):
         sleep(0.1)
         self.rst.value(1)
 
-    def scramble(self, address, n_times=10):
+    def scramble(self, address: int, n_times: int = 10):
         for i in range(n_times):
             self.write_char(address, i + 48)
             sleep_ms(10)
@@ -125,49 +125,10 @@ class futaba_8md06inkm_fb(framebuf.FrameBuffer):
         for i in range(self.digits):
             self.__write_cmd((DCRAM_DATA_WRITE | i, i))
 
-    def standby(self, is_standby):
+    def standby(self, is_standby: bool):
         self.__write_cmd([SET_STAND_BY_MODE | is_standby, EMPTY_DATA])
 
-    def write_bits(self, address, bits_list):
-        self.__store_custom_symbol(address, bits_list)
-        self.write_char(address, address)
-
-    def write_char(self, address, char):
-        self.__write_cmd((DCRAM_DATA_WRITE | address, char))
-
-    def write_fb(self, address: int, buf: bytearray):
-        self.__write_data(address, buf)
-        self.__write_cmd((DCRAM_DATA_WRITE | address, address))
-
-    def write_str(self, address: int, msg: str):
-        for i in msg:
-            self.__write_cmd((DCRAM_DATA_WRITE | address, ord(i)))
-            if address < self.digits - 1:
-                address += 1
-            else:
-                break
-
-    # # TODO
-    # def write_str_scroll(self, address, msg, delay_ms=100):
-    #     for i in range(address + len(msg) - self.digits + 1):
-    #         for j in range(len(msg)):
-    #             self.write_char(address - i + j, ord(msg[j]))
-    #         sleep_ms(delay_ms)
-
-    def __msb_to_lsb(self, msb_data):
-        lsb_data = EMPTY_DATA
-        lsb_data = lsb_data | ((msb_data & (URAM_DATA_WRITE >> 0)) >> 7)
-        lsb_data = lsb_data | ((msb_data & (URAM_DATA_WRITE >> 1)) >> 5)
-        lsb_data = lsb_data | ((msb_data & (URAM_DATA_WRITE >> 2)) >> 3)
-        lsb_data = lsb_data | ((msb_data & (URAM_DATA_WRITE >> 3)) >> 1)
-        lsb_data = lsb_data | ((msb_data & (URAM_DATA_WRITE >> 4)) << 1)
-        lsb_data = lsb_data | ((msb_data & (URAM_DATA_WRITE >> 5)) << 3)
-        lsb_data = lsb_data | ((msb_data & (URAM_DATA_WRITE >> 6)) << 5)
-        lsb_data = lsb_data | ((msb_data & (URAM_DATA_WRITE >> 7)) << 7)
-
-        return lsb_data
-
-    def __store_custom_symbol(self, address, data_list):
+    def store_custom_symbol(self, address: int, data_list: list):
         self.cs.value(0)
         data = bytearray(1)
         data[0] = self.__msb_to_lsb(CGRAM_DATA_WRITE + address)
@@ -189,7 +150,47 @@ class futaba_8md06inkm_fb(framebuf.FrameBuffer):
         self.spi.write(data)
         self.cs.value(1)
 
-    def __write_cmd(self, cmd):
+    def write_bits(self, address: int, bits_list: list):
+        self.store_custom_symbol(address, bits_list)
+        self.write_char(address, address)
+
+    def write_char(self, address: int, char: int):
+        self.__write_cmd((DCRAM_DATA_WRITE | address, char))
+
+    def write_fb(self, address: int, buf: bytearray):
+        self.__write_data(address, buf)
+        self.__write_cmd((DCRAM_DATA_WRITE | address, address))
+
+    def write_str(
+        self, address: int, msg: str, scroll: bool = False, delay_ms: int = 100
+    ):
+        msg = " " * address + msg
+
+        if scroll:
+            if len(msg) <= self.digits:
+                self.__write_str(0, msg[: self.digits + 1])
+            else:
+                for i in range(len(msg) - self.digits + 1):
+                    self.clear()
+                    self.__write_str(0, msg[i : self.digits + i])
+                    sleep_ms(delay_ms)
+        else:
+            self.__write_str(0, msg)
+
+    def __msb_to_lsb(self, msb_data: int):
+        lsb_data = EMPTY_DATA
+        lsb_data = lsb_data | ((msb_data & (URAM_DATA_WRITE >> 0)) >> 7)
+        lsb_data = lsb_data | ((msb_data & (URAM_DATA_WRITE >> 1)) >> 5)
+        lsb_data = lsb_data | ((msb_data & (URAM_DATA_WRITE >> 2)) >> 3)
+        lsb_data = lsb_data | ((msb_data & (URAM_DATA_WRITE >> 3)) >> 1)
+        lsb_data = lsb_data | ((msb_data & (URAM_DATA_WRITE >> 4)) << 1)
+        lsb_data = lsb_data | ((msb_data & (URAM_DATA_WRITE >> 5)) << 3)
+        lsb_data = lsb_data | ((msb_data & (URAM_DATA_WRITE >> 6)) << 5)
+        lsb_data = lsb_data | ((msb_data & (URAM_DATA_WRITE >> 7)) << 7)
+
+        return lsb_data
+
+    def __write_cmd(self, cmd: int):
         self.cs.value(0)
         for i in cmd:
             data_list = bytearray(1)
@@ -197,7 +198,7 @@ class futaba_8md06inkm_fb(framebuf.FrameBuffer):
             self.spi.write(data_list)
         self.cs.value(1)
 
-    def __write_data(self, address: int, buf):
+    def __write_data(self, address: int, buf: bytearray):
         self.cs.value(0)
         data_list = bytearray(1)
         data_list[0] = self.__msb_to_lsb(CGRAM_DATA_WRITE | address)
@@ -207,3 +208,11 @@ class futaba_8md06inkm_fb(framebuf.FrameBuffer):
             data_list[0] = self.__msb_to_lsb(i)
             self.spi.write(data_list)
         self.cs.value(1)
+
+    def __write_str(self, address: int, msg: str):
+        for i in msg:
+            self.__write_cmd((DCRAM_DATA_WRITE | address, ord(i)))
+            if address < self.digits - 1:
+                address += 1
+            else:
+                break

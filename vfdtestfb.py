@@ -1,7 +1,10 @@
+# -*- coding: utf-8 -*-
+
 import framebuf
 from futaba_8md06inkm_fb import futaba_8md06inkm_fb
 from machine import Pin, SPI
-from utime import sleep
+from random import randrange
+from utime import sleep, sleep_ms
 
 rst_pin = Pin(4, Pin.OUT)
 cs_pin = Pin(5, Pin.OUT)
@@ -18,11 +21,21 @@ spi = SPI(
 
 display = futaba_8md06inkm_fb(spi, rst_pin, cs_pin, en_pin, digits=6, dimming=10)
 
-display.set_dimming(10)
 sleep(1)
+
 display.set_dimming(255)
 
-bits = [0x0C, 0x1E, 0x3C, 0x1E, 0x0C]
+display.write_str(0, "01234567")
+sleep(1)
+
+display.fadeout(delay_ms=5)
+display.fadein(delay_ms=5, dimming=255)
+sleep(1)
+
+for i in range(display.digits):
+    display.scramble(address=randrange(display.digits), n_times=randrange(10))
+    sleep_ms(randrange(50, 500))
+sleep(1)
 
 i = 0
 for _ in range(5 * display.digits):
@@ -37,10 +50,14 @@ for _ in range(5 * display.digits):
     display.text("01234567", i, 0)
     display.show_fb()
     sleep(0.03)
-
-# sleep(1)
-# display.write_str_scroll(display.digits, "Writing a long String to see scrolling.")
 sleep(1)
+
+display.clear()
+display.write_str(
+    display.digits, "Writing a long String to see scrolling.", scroll=True, delay_ms=100
+)
+sleep(1)
+
 display.write_str(0, "ÄäÖöÜü°")
 sleep(1)
 
@@ -52,17 +69,25 @@ fbuf = framebuf.FrameBuffer(buf, 5, 7, framebuf.MONO_VLSB)
 fbuf.rect(0, 0, 5, 7, 1)
 display.write_fb(0, buf)
 sleep(1)
-display.write_bits(0, bits)
-sleep(1)
 
-display.disable()
-sleep(1)
-display.enable()
+bits = [0x0C, 0x1E, 0x3C, 0x1E, 0x0C]
+display.write_bits(0, bits)
+buf[:] = bytearray(bits)
+display.write_fb(display.digits - 1, buf)
 sleep(1)
 
 display.clear(0)
+display.clear(display.digits - 1)
 sleep(1)
+
 display.clear()
 sleep(1)
 
 display.disable()
+sleep(1)
+
+display.enable()
+sleep(1)
+
+display.disable()
+display.off()
