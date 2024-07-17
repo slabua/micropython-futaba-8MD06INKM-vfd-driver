@@ -95,5 +95,6 @@ sleep(1)
 display.enable()
 sleep(1)
 
+display.set_dimming(0)
 display.disable()
 display.off()
