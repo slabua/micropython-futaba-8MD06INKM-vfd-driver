@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Futaba 8MD06INKM VFD Micropython Driver for Pico, with Framebuffer support.
+"""Futaba 000FV959IN / BOE CIG14-0604B, 8-MD-06INKM, 16-SD-13GINK VFD
+   Micropython Driver for the Raspberry Pi Pico, with Framebuffer support.
 """
 
 __author__ = "Salvatore La Bua"
 __copyright__ = "Copyright 2024, Salvatore La Bua"
 __license__ = "MIT"
-__version__ = "0.1"
+__version__ = "0.2"
 __maintainer__ = "Salvatore La Bua"
 __email__ = "slabua@gmail.com"
 __status__ = "Development"
@@ -14,7 +15,7 @@ import framebuf
 from micropython import const
 from utime import sleep, sleep_ms
 
-DGRAM_DATA_CLEAR = const(0x10)
+DGRAM_DATA_CLEAR = const(0x20)
 DCRAM_DATA_WRITE = const(0x20)
 CGRAM_DATA_WRITE = const(0x40)
 URAM_DATA_WRITE = const(0x80)
@@ -26,7 +27,7 @@ SET_STAND_BY_MODE = const(0xEC)
 EMPTY_DATA = const(0x00)
 
 
-class futaba_8md06inkm_fb(framebuf.FrameBuffer):
+class FutabaVFD(framebuf.FrameBuffer):
 
     def __init__(self, spi, rst, cs, en, digits=8, dimming=255):
         self.spi = spi
@@ -151,8 +152,8 @@ class futaba_8md06inkm_fb(framebuf.FrameBuffer):
         self.cs.value(1)
 
     def write_bits(self, address: int, bits_list: list):
-        self.store_custom_symbol(address, bits_list)
-        self.write_char(address, address)
+        self.store_custom_symbol(address % 8, bits_list)
+        self.write_char(address, address % 8)
 
     def write_char(self, address: int, char: int):
         self.__write_cmd((DCRAM_DATA_WRITE | address, char))

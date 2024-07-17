@@ -1,4 +1,4 @@
-# Futaba 8MD06INKM VFD Micropython Driver for the Raspberry Pi Pico, with Framebuffer support.
+# Futaba 000FV959IN / BOE CIG14-0604B, 8-MD-06INKM, 16-SD-13GINK VFD Micropython Driver for the Raspberry Pi Pico, with Framebuffer support.
 
 
 ## Functions
