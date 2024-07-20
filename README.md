@@ -7,7 +7,7 @@
 ### 8 Digits
 - Futaba 8-MD-06INKM
 ### 16 Digits
-- Futaba 16-SD-13GINK
+- Futaba 16-SD-13GINK (partial framebuffer support, wip)
 
 ## Functions
 
